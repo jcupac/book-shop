@@ -7,7 +7,7 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     ports:
-      - "3111:3000"
+      - "3311:3000"
     environment:
       - BACKEND_API_URL=http://backend:8081
     depends_on:
@@ -21,14 +21,14 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     ports:
-      - "8111:8081"
+      - "8311:8081"
     environment:
       - POSTGRES_DB_HOST=postgres
       - POSTGRES_DB_PORT=5432
       - POSTGRES_DB_NAME=app
       - POSTGRES_DB_USER=app
       - POSTGRES_DB_PASSWORD=app
-      - ALLOWED_ORIGINS=http://localhost:3111,http://frontend:3000
+      - ALLOWED_ORIGINS=http://localhost:3311,http://frontend:3000
       - ERP_API_URL=http://external-system-simulators:9000/erp
       - CLOCK_API_URL=http://external-system-simulators:9000/clock
       - TAX_API_URL=http://external-system-simulators:9000/tax
@@ -75,7 +75,7 @@ services:
       context: ../external-systems/simulators
       dockerfile: Dockerfile
     ports:
-      - "9111:9000"
+      - "9311:9000"
     networks:
       - app-network
 

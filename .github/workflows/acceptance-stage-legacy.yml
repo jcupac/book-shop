@@ -113,7 +113,7 @@ jobs:
       packages: read
     env:
       GH_OPTIVEM_CONFIG: gh-optivem.legacy.yaml
-      # The test suites run without -Denvironment, so this selects Environment.ACCEPTANCE.
+      # configuration-loader.ts uses ENVIRONMENT to pick test-config-acceptance-{stub,real}.json.
       ENVIRONMENT: acceptance
     steps:
       - name: Checkout Repository
@@ -153,10 +153,10 @@ jobs:
         with:
           endpoints: |
             [
-              { "name": "BookShop UI", "url": "http://localhost:3111/" },
-              { "name": "BookShop API", "url": "http://localhost:8111/health" },
-              { "name": "ERP", "url": "http://localhost:9111/erp/health" },
-              { "name": "Clock", "url": "http://localhost:9111/clock/health" }
+              { "name": "BookShop UI", "url": "http://localhost:3311/" },
+              { "name": "BookShop API", "url": "http://localhost:8311/health" },
+              { "name": "ERP", "url": "http://localhost:9311/erp/health" },
+              { "name": "Clock", "url": "http://localhost:9311/clock/health" }
             ]
           compose-file: docker-compose.pipeline.real.yml
           working-directory: docker
@@ -178,36 +178,27 @@ jobs:
         with:
           endpoints: |
             [
-              { "name": "BookShop UI", "url": "http://localhost:3112/" },
-              { "name": "BookShop API", "url": "http://localhost:8112/health" },
-              { "name": "ERP", "url": "http://localhost:9112/erp/health" },
-              { "name": "Clock", "url": "http://localhost:9112/clock/health" }
+              { "name": "BookShop UI", "url": "http://localhost:3312/" },
+              { "name": "BookShop API", "url": "http://localhost:8312/health" },
+              { "name": "ERP", "url": "http://localhost:9312/erp/health" },
+              { "name": "Clock", "url": "http://localhost:9312/clock/health" }
             ]
           compose-file: docker-compose.pipeline.stub.yml
           working-directory: docker
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
-          java-version: 21
-          distribution: temurin
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Pre-warm Gradle Wrapper (retry transient CDN flakes)
-        uses: nick-fields/retry@v4
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          command: cd system-test && ./gradlew --version
+          node-version: 22.x
+          cache: 'npm'
+          cache-dependency-path: system-test/package-lock.json
 
       - name: Cache Playwright Browsers
         id: cache-playwright
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('system-test/build.gradle') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('system-test/package-lock.json') }}
 
       - name: Install Playwright Browser
         if: steps.cache-playwright.outputs.cache-hit != 'true'

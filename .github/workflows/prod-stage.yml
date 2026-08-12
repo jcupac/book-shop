@@ -153,10 +153,10 @@ jobs:
         with:
           endpoints: |
             [
-              { "name": "BookShop UI", "url": "http://localhost:3111/" },
-              { "name": "BookShop API", "url": "http://localhost:8111/health" },
-              { "name": "ERP", "url": "http://localhost:9111/erp/health" },
-              { "name": "Clock", "url": "http://localhost:9111/clock/health" }
+              { "name": "BookShop UI", "url": "http://localhost:3311/" },
+              { "name": "BookShop API", "url": "http://localhost:8311/health" },
+              { "name": "ERP", "url": "http://localhost:9311/erp/health" },
+              { "name": "Clock", "url": "http://localhost:9311/clock/health" }
             ]
           compose-file: docker-compose.pipeline.real.yml
           working-directory: docker
@@ -219,7 +219,7 @@ jobs:
       - name: Publish Backend Component Release Tag
         uses: optivem/actions/publish-tag@v1
         with:
-          tag: backend-v${{ steps.component-tag-versions.outputs.backend }}
+          tag: v${{ steps.component-tag-versions.outputs.backend }}
           token: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Publish Frontend Component Release Tag

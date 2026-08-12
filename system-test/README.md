@@ -1,17 +1,17 @@
-# System Test (Java)
+# System Test (TypeScript)
 
 ## Prerequisites
 
 - gh CLI with the optivem extension: `gh extension install optivem/gh-optivem`
 - Docker Desktop (running)
-- JDK 21+
+- Node.js 22+
 
 ## Running Tests
 
 All commands are run from the repo root. Point `GH_OPTIVEM_CONFIG` at the variant yaml at the repo root once per shell, then run the verbs without per-flag overrides:
 
 ```pwsh
-$env:GH_OPTIVEM_CONFIG = "gh-optivem-monolith-java.yaml"
+$env:GH_OPTIVEM_CONFIG = "gh-optivem-monolith-typescript.yaml"
 ```
 
 Bring up the system stack (real + stub) for the chosen architecture:
@@ -20,7 +20,7 @@ Bring up the system stack (real + stub) for the chosen architecture:
 gh optivem system start
 ```
 
-Prepare the test harness (gradle compile of test sources):
+Prepare the test harness (`npm ci` + `playwright install chromium`):
 
 ```bash
 gh optivem system-test setup
@@ -35,7 +35,7 @@ gh optivem system-test run
 Run legacy test suites — switch the env var first, then re-run setup (legacy has its own setupCommands block):
 
 ```pwsh
-$env:GH_OPTIVEM_CONFIG = "gh-optivem-monolith-java-legacy.yaml"
+$env:GH_OPTIVEM_CONFIG = "gh-optivem-monolith-typescript-legacy.yaml"
 gh optivem system-test setup
 gh optivem system-test run
 ```
@@ -64,7 +64,7 @@ Stop the system when done:
 gh optivem system stop
 ```
 
-Substitute `gh-optivem-multitier-java.yaml` for the multitier architecture.
+Substitute `gh-optivem-multitier-typescript.yaml` for the multitier architecture.
 
 ## Available Suite IDs
 

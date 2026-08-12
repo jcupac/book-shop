@@ -41,10 +41,11 @@
 # strings that could parse as a YAML scalar (`yes`, `no`, country codes).
 
 setupCommands:
-  - name: Clean Build
-    command: .\gradlew.bat clean compileJava compileTestJava
-testFilter: --tests '*.<test>'
-testFilterJoin: repeat
+  - name: Install Dependencies
+    command: npm ci --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
+  - name: Install Playwright Browsers
+    command: npx playwright install chromium
+testFilter: --grep '<test>'
 suiteGroups:
   acceptance: [acceptance-parallel-api, acceptance-isolated-api, acceptance-parallel-ui, acceptance-isolated-ui]
   acceptance-api: [acceptance-parallel-api, acceptance-isolated-api]
@@ -52,74 +53,110 @@ suiteGroups:
 suites:
   - id: smoke-stub
     name: latest - Smoke (stub)
-    command: .\gradlew.bat test -Dversion=latest -Dtype=smoke -DexternalSystemMode=stub
+    command: npx playwright test --project=smoke-test tests/latest/smoke
+    env:
+      EXTERNAL_SYSTEM_MODE: stub
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    sampleTest: shouldBeAbleToGoToClock
+    testReportPath: playwright-report/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
   - id: smoke-real
     name: latest - Smoke (real)
-    command: .\gradlew.bat test -Dversion=latest -Dtype=smoke -DexternalSystemMode=real
+    command: npx playwright test --project=smoke-test tests/latest/smoke
+    env:
+      EXTERNAL_SYSTEM_MODE: real
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    sampleTest: shouldBeAbleToGoToClock
+    testReportPath: playwright-report/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
   - id: acceptance-parallel-api
     name: latest - Acceptance Parallel (stub) - API
-    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DexcludeTags=isolated -Dchannel=API -PtestResultsDir=test-results/parallel-api
+    command: npx playwright test --pass-with-no-tests --project=acceptance-test --grep-invert '@isolated' tests/latest/acceptance
+    env:
+      CHANNEL: API
+      EXTERNAL_SYSTEM_MODE: stub
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/parallel-api.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/parallel-api
-    sampleTest: shouldBeAbleToPlaceOrderForValidInput
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/parallel-api.json
+    sampleTest: shouldBeAbleToBrowseCoupons
   - id: acceptance-parallel-ui
     name: latest - Acceptance Parallel (stub) - UI
-    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DexcludeTags=isolated -Dchannel=UI -DchannelMode=static -PtestResultsDir=test-results/parallel-ui
+    command: npx playwright test --pass-with-no-tests --project=acceptance-test --grep-invert '@isolated' tests/latest/acceptance
+    env:
+      CHANNEL: UI
+      CHANNEL_MODE: static
+      EXTERNAL_SYSTEM_MODE: stub
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/parallel-ui.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/parallel-ui
-    sampleTest: shouldBeAbleToPlaceOrderForValidInput
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/parallel-ui.json
+    sampleTest: shouldBeAbleToBrowseCoupons
   - id: acceptance-isolated-api
     name: latest - Acceptance Isolated (stub) - API
-    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DincludeTags=isolated -Dchannel=API -PtestResultsDir=test-results/isolated-api
+    command: npx playwright test --pass-with-no-tests --project=acceptance-test --workers=1 --grep '@isolated' tests/latest/acceptance
+    env:
+      CHANNEL: API
+      EXTERNAL_SYSTEM_MODE: stub
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/isolated-api.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/isolated-api
-    sampleTest: shouldRecordPlacementTimestamp
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/isolated-api.json
+    sampleTest: shouldBeAbleToCancelOrder
   - id: acceptance-isolated-ui
     name: latest - Acceptance Isolated (stub) - UI
-    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DincludeTags=isolated -Dchannel=UI -DchannelMode=static -PtestResultsDir=test-results/isolated-ui
+    command: npx playwright test --pass-with-no-tests --project=acceptance-test --workers=1 --grep '@isolated' tests/latest/acceptance
+    env:
+      CHANNEL: UI
+      CHANNEL_MODE: static
+      EXTERNAL_SYSTEM_MODE: stub
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/isolated-ui.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/isolated-ui
-    sampleTest: shouldRecordPlacementTimestamp
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/isolated-ui.json
+    sampleTest: shouldBeAbleToCancelOrder
   - id: contract-stub
     name: latest - Contract (stub)
-    command: .\gradlew.bat test -Dversion=latest -Dtype=contract -DexcludeTags=isolated -DexternalSystemMode=stub -PtestResultsDir=test-results/stub
+    command: npx playwright test --pass-with-no-tests --project=external-system-contract-test --workers=1 --grep-invert '@isolated' 'tests/latest/contract/.*-stub-.*\.spec\.ts'
+    env:
+      EXTERNAL_SYSTEM_MODE: stub
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/results.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/stub
-    sampleTest: shouldBeAbleToGetProduct
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/results.json
+    sampleTest: shouldBeAbleToGetTime
   - id: contract-stub-isolated
     name: latest - Contract Isolated (stub)
-    command: .\gradlew.bat test -Dversion=latest -Dtype=contract -DincludeTags=isolated -DexternalSystemMode=stub -PtestResultsDir=test-results/stub-isolated
+    command: npx playwright test --pass-with-no-tests --project=external-system-contract-test --workers=1 --grep '@isolated' 'tests/latest/contract/.*-stub-.*\.spec\.ts'
+    env:
+      EXTERNAL_SYSTEM_MODE: stub
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/results.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/stub-isolated
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/results.json
     sampleTest: shouldBeAbleToGetConfiguredTime
   - id: contract-real
     name: latest - Contract (real)
-    command: .\gradlew.bat test -Dversion=latest -Dtype=contract -DexternalSystemMode=real -PtestResultsDir=test-results/real
+    command: npx playwright test --pass-with-no-tests --project=external-system-contract-test --workers=1 'tests/latest/contract/.*-real-.*\.spec\.ts'
+    env:
+      EXTERNAL_SYSTEM_MODE: real
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/results.json
     path: .
-    testReportPath: build/reports/tests/test/index.html
-    testCountPath: build/test-results/real
-    sampleTest: shouldBeAbleToGetProduct
+    testReportPath: playwright-report/index.html
+    testCountPath: playwright-report/results.json
+    sampleTest: shouldBeAbleToGetTime
   - id: e2e-api
     name: latest - E2E (real) - API
-    command: .\gradlew.bat test -Dversion=latest -Dtype=e2e -Dchannel=API
+    command: npx playwright test --project=e2e-test tests/latest/e2e
+    env:
+      CHANNEL: API
     path: .
-    testReportPath: build/reports/tests/test/index.html
+    testReportPath: playwright-report/index.html
     sampleTest: shouldPlaceOrder
   - id: e2e-ui
     name: latest - E2E (real) - UI
-    command: .\gradlew.bat test -Dversion=latest -Dtype=e2e -Dchannel=UI -DchannelMode=static
+    command: npx playwright test --project=e2e-test tests/latest/e2e
+    env:
+      CHANNEL: UI
+      CHANNEL_MODE: static
     path: .
-    testReportPath: build/reports/tests/test/index.html
+    testReportPath: playwright-report/index.html
     sampleTest: shouldPlaceOrder

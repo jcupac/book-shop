@@ -1,28 +1,29 @@
 setupCommands:
-  - name: Restore Dependencies
-    command: dotnet restore
+  - name: Install Dependencies
+    command: npm ci
 compileCommands:
-  - name: Compile production + test projects
-    command: dotnet build
-testFilter: --filter DisplayName~<test>
+  - name: Typecheck production + test sources
+    command: npx tsc --noEmit
+testFilter: -t '<test>'
 suites:
   - id: unit
     name: Unit
-    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Unit"
-    sampleTest: "OnePlusOne"
+    command: npm test
+    sampleTest: 'should return "Hello World!"'
   - id: integration
     name: Narrow Integration
-    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Integration"
-    sampleTest: "SavesAndReadsBackOrder"
+    command: npm run test:integration
+    sampleTest: "saves an order and reads it back"
     requiresDocker: true
   - id: component
     name: Component
-    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Component"
-    sampleTest: "HealthEndpoint_ReturnsUp"
+    command: npm run test:component
+    sampleTest: "computes totals from price, promotion and tax"
+    requiresDocker: true
   - id: provider-verification
     name: Provider Verification (Pact)
-    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Contract"
-    sampleTest: "Verify"
+    command: npm run test:pact
+    sampleTest: "verifies the frontend consumer contract"
     requiresDocker: true
 suiteGroups:
   all: [unit, integration, component, provider-verification]

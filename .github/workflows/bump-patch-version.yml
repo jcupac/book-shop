@@ -1,11 +1,12 @@
 name: bump-patch-version
 
-# Per-flavor bumper for multitier-dotnet. Bumps VERSION
-# (system bundle) and cascades to backend-dotnet + frontend-react component
-# VERSIONs when their respective tags advance. Triggered by
-# multitier-dotnet-prod-stage (post-release) and meta-bump-all (recovery).
-# Frontend-react is shared across multitier flavors so it may bump up to 3×
-# per round of releases. Doubles as a scaffold source for gh-optivem.
+# Per-flavor bumper for multitier-typescript. Bumps
+# VERSION (system bundle) and cascades to
+# backend-typescript + frontend-react component VERSIONs when their tags
+# advance. Triggered by prod-stage (post-release) and
+# meta-bump-all (recovery). Frontend-react is shared across multitier flavors
+# so it may bump up to 3× per round of releases. Doubles as a scaffold source
+# for gh-optivem.
 # Race-safe (Contents API with SHA preconditions). Idempotent.
 
 on:
@@ -33,9 +34,9 @@ jobs:
         with:
           version-files: |
             [
-              {"path": "VERSION",          "value": "multitier-dotnet-v"},
-              {"path": "backend/VERSION",  "value": "v"},
-              {"path": "frontend/VERSION",  "value": "v"}
+              {"path": "VERSION",         "value": "v"},
+              {"path": "backend/VERSION", "value": "v"},
+              {"path": "frontend/VERSION",     "value": "v"}
             ]
 
       - name: Build Commit Payload

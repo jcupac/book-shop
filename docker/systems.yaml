@@ -26,17 +26,17 @@ systems:
     containerName: book-shop-stub
     components:
       - name: Frontend
-        url: http://localhost:3112
+        url: http://localhost:3312
         containerName: frontend
       - name: Backend API
-        url: http://localhost:8112/health
+        url: http://localhost:8312/health
         containerName: backend
     externalSystems:
       - name: ERP API (Stub)
-        url: http://localhost:9112/erp/health
+        url: http://localhost:9312/erp/health
         containerName: external-system-stubs
       - name: Clock API (Stub)
-        url: http://localhost:9112/clock/health
+        url: http://localhost:9312/clock/health
         containerName: external-system-stubs
   - label: real
     description: External System Test Instances
@@ -44,15 +44,15 @@ systems:
     containerName: book-shop-real
     components:
       - name: Frontend
-        url: http://localhost:3111
+        url: http://localhost:3311
         containerName: frontend
       - name: Backend API
-        url: http://localhost:8111/health
+        url: http://localhost:8311/health
         containerName: backend
     externalSystems:
       - name: ERP API (Real)
-        url: http://localhost:9111/erp/health
+        url: http://localhost:9311/erp/health
         containerName: external-system-simulators
       - name: Clock API (Real)
-        url: http://localhost:9111/clock/health
+        url: http://localhost:9311/clock/health
         containerName: external-system-simulators

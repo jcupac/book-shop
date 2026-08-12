@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Runs SonarScanner analysis on the Java system tests.
+# Runs SonarScanner analysis on the TypeScript system tests.
 #
 # Local helper that pushes a SonarCloud analysis using your personal token.
-# CI runs the same analysis (auto-retried in CI via optivem/actions) from monolith-java-acceptance-stage.yml and
-# multitier-java-acceptance-stage.yml after tests finish; this script is for
-# manual runs.
-# Project key: jcupac_book-shop-system-test (config in build.gradle).
+# CI runs the same analysis (auto-retried in CI via optivem/actions) from monolith-typescript-acceptance-stage.yml and
+# multitier-typescript-acceptance-stage.yml after tests finish; this script
+# is for manual runs.
 # Get token: https://sonarcloud.io/account/security
 #
 # Usage: ./run-sonar.sh [TOKEN]
@@ -20,8 +19,14 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-echo "Running SonarScanner for Java system tests..."
+echo "Running SonarScanner for TypeScript system tests..."
 
-./gradlew classes testClasses sonar --info "-Dsonar.token=$TOKEN" -Dsonar.scanner.skipJreProvisioning=true
+npx -y sonarqube-scanner \
+    "-Dsonar.projectKey=jcupac_book-shop-system-test" \
+    "-Dsonar.projectName=book-shop-system-test" \
+    "-Dsonar.organization=jcupac" \
+    "-Dsonar.host.url=https://sonarcloud.io" \
+    "-Dsonar.token=$TOKEN" \
+    "-Dsonar.sources=src,tests"
 
 echo "Sonar analysis complete."

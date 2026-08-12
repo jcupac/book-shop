@@ -11,7 +11,7 @@ system:
     backend:
         path: backend
         repo: jcupac/book-shop
-        lang: dotnet
+        lang: typescript
         sonar-project: jcupac_book-shop-backend
     frontend:
         path: frontend
@@ -21,24 +21,24 @@ system:
 system-test:
     path: system-test
     repo: jcupac/book-shop
-    lang: java
+    lang: typescript
     config: system-test/tests.legacy.yaml
     sonar-project: jcupac_book-shop-system-test
     paths:
-        at-test: system-test/src/test/java/com/jcupac/bookshop/systemtest/latest/acceptance
-        common: system-test/src/main/java/com/jcupac/bookshop/testkit/common
-        ct-test: system-test/src/test/java/com/jcupac/bookshop/systemtest/latest/contract
-        domain-value-types: system-test/src/main/java/com/jcupac/bookshop/testkit/domainvaluetypes
-        dsl-core: system-test/src/main/java/com/jcupac/bookshop/testkit/dsl/core
-        dsl-port: system-test/src/main/java/com/jcupac/bookshop/testkit/dsl/port
-        external-system-driver-adapter: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/adapter/external
-        external-system-driver-port: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/port/external
-        system-driver-adapter: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/adapter
-        system-driver-adapter-shared: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/adapter/shared
-        system-driver-port: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/port
+        at-test: system-test/tests/latest/acceptance
+        common: system-test/src/testkit/common
+        ct-test: system-test/tests/latest/contract
+        domain-value-types: system-test/src/testkit/domainvaluetypes
+        dsl-core: system-test/src/testkit/dsl/core
+        dsl-port: system-test/src/testkit/dsl/port
+        external-system-driver-adapter: system-test/src/testkit/driver/adapter/external
+        external-system-driver-port: system-test/src/testkit/driver/port/external
+        system-driver-adapter: system-test/src/testkit/driver/adapter
+        system-driver-adapter-shared: system-test/src/testkit/driver/adapter/shared
+        system-driver-port: system-test/src/testkit/driver/port
     system-driver-adapter-channels:
-        api: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/adapter/api
-        ui: system-test/src/main/java/com/jcupac/bookshop/testkit/driver/adapter/ui
+        api: system-test/src/testkit/driver/adapter/api
+        ui: system-test/src/testkit/driver/adapter/ui
 system-name: Book Shop
 license: mit
 deploy: docker

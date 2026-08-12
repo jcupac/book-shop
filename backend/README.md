@@ -1,6 +1,6 @@
-# Backend (.NET)
+# Backend (TypeScript)
 
-This is a sample backend API service written in C# using ASP.NET Core.
+This is a sample backend API service written in TypeScript using NestJS.
 
 ## Instructions
 
@@ -10,22 +10,34 @@ Open up the 'backend' folder
 cd backend
 ```
 
-Ensure you have .NET SDK 8.0 installed
+Ensure you have Node.js 22 installed
 
 ```shell
-dotnet --version
+node --version
+```
+
+Install dependencies
+
+```shell
+npm install
 ```
 
 Build the application
 
 ```shell
-dotnet build
+npm run build
 ```
 
-Run the application
+Run the application in development mode
 
 ```shell
-dotnet run
+npm run start:dev
+```
+
+Run the application in production mode
+
+```shell
+npm run build && npm run start:prod
 ```
 
 App should now be running on:

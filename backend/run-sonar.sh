@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Runs SonarScanner analysis on the multitier .NET backend.
+# Runs SonarScanner analysis on the multitier TypeScript backend.
 #
 # Local helper that pushes a SonarCloud analysis using your personal token.
-# CI runs the same analysis (auto-retried in CI via optivem/actions) from multitier-dotnet-acceptance-stage.yml;
+# CI runs the same analysis (auto-retried in CI via optivem/actions) from multitier-typescript-acceptance-stage.yml;
 # this script is for manual runs.
+# Ignore rules in sonar-project.properties (auto-loaded from this dir).
 # Get token: https://sonarcloud.io/account/security
 #
 # Usage: ./run-sonar.sh [TOKEN]
@@ -11,36 +12,21 @@
 
 set -euo pipefail
 
-# Disable MSYS2 path conversion on Git Bash for Windows; otherwise `/k:`,
-# `/o:`, `/d:` flags below get mangled to `k:`, `o:`, `d:`. No-op elsewhere.
-export MSYS2_ARG_CONV_EXCL='*'
-
 TOKEN="${1:-${SONAR_TOKEN:-}}"
-if [[ -z "$TOKEN" ]]; then
+if [ -z "$TOKEN" ]; then
   echo "ERROR: Sonar token required. Set SONAR_TOKEN env var or pass as first arg." >&2
   echo "Get token: https://sonarcloud.io/account/security" >&2
   exit 1
 fi
 
-echo "Running SonarScanner for multitier .NET backend..."
+echo "Running SonarScanner for multitier TypeScript backend..."
 
-if ! install_err=$(dotnet tool install --global dotnet-sonarscanner 2>&1); then
-  if [[ "$install_err" == *"already installed"* ]]; then
-    :  # expected — tool present from a prior run
-  else
-    echo "⚠️  dotnet-sonarscanner install failed (continuing): $install_err" >&2
-  fi
-fi
-
-dotnet sonarscanner begin \
-    /k:"jcupac_book-shop-backend" \
-    /n:"book-shop-backend" \
-    /o:"jcupac" \
-    /d:sonar.host.url="https://sonarcloud.io" \
-    /d:sonar.token="$TOKEN"
-
-dotnet build Jcupac.BookShop.Backend.slnx --no-incremental
-
-dotnet sonarscanner end /d:sonar.token="$TOKEN"
+npx -y sonarqube-scanner \
+    "-Dsonar.projectKey=jcupac_book-shop-backend" \
+    "-Dsonar.projectName=book-shop-backend" \
+    "-Dsonar.organization=jcupac" \
+    "-Dsonar.host.url=https://sonarcloud.io" \
+    "-Dsonar.token=$TOKEN" \
+    "-Dsonar.sources=src"
 
 echo "Sonar analysis complete."

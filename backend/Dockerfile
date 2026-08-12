@@ -1,30 +1,47 @@
 # syntax=docker/dockerfile:1.4
-# Use the official .NET SDK image for build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Stage 1: Production-only deps (runs in parallel with the build stage)
+FROM node:22-alpine AS deps-prod
 WORKDIR /app
-ENV NUGET_PACKAGES=/root/.nuget/packages
+COPY package*.json ./
+# npm retries transient registry failures (ECONNRESET, 5xx) on its own; raise
+# the retry budget above the 2-retry default so a flaky network doesn't fail
+# the build. Hard failures (404, ETARGET) still fail fast.
+ENV npm_config_fetch_retries=5 \
+    npm_config_fetch_retry_mintimeout=20000 \
+    npm_config_fetch_retry_maxtimeout=120000
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 
-# Copy csproj + central package management files (if present) and restore as distinct layer
-COPY *.csproj global.json* Directory.Packages.props* ./
-RUN --mount=type=cache,target=/root/.nuget/packages dotnet restore
-
-# Copy everything else and build
-COPY . ./
-RUN dotnet publish Jcupac.BookShop.Backend.csproj -c Release -o out
-
-# Use the official ASP.NET runtime image for the app
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Stage 2: Build the app (full deps including devDependencies)
+FROM node:22-alpine AS build
 WORKDIR /app
+COPY package*.json ./
+# Raise npm's fetch-retry budget so transient registry blips don't fail the build.
+ENV npm_config_fetch_retries=5 \
+    npm_config_fetch_retry_mintimeout=20000 \
+    npm_config_fetch_retry_maxtimeout=120000
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY . .
+RUN npm run build
 
-# Install curl for HEALTHCHECK probes (~7 MB)
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+# Stage 3: Run the app
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production
 
-COPY --from=build --chown=app:app /app/out ./
-USER app
+# Bring in pre-built prod node_modules + compiled output
+COPY --from=deps-prod /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package*.json ./
 
+# Drop privileges to the built-in node user
+USER node
+
+# Expose port
 EXPOSE 8081
-HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=5 \
-  CMD curl -fsS http://localhost:8081/health || exit 1
 
-# Set the entry point
-ENTRYPOINT ["dotnet", "Jcupac.BookShop.Backend.dll"]
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=5 \
+  CMD wget -qO- http://localhost:8081/health || exit 1
+
+# Start the app
+CMD ["node", "dist/main"]

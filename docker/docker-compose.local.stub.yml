@@ -7,7 +7,7 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     ports:
-      - "3112:3000"
+      - "3312:3000"
     environment:
       - BACKEND_API_URL=http://backend:8081
     depends_on:
@@ -21,14 +21,14 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     ports:
-      - "8112:8081"
+      - "8312:8081"
     environment:
       - POSTGRES_DB_HOST=postgres
       - POSTGRES_DB_PORT=5432
       - POSTGRES_DB_NAME=app
       - POSTGRES_DB_USER=app
       - POSTGRES_DB_PASSWORD=app
-      - ALLOWED_ORIGINS=http://localhost:3112,http://frontend:3000
+      - ALLOWED_ORIGINS=http://localhost:3312,http://frontend:3000
       - ERP_API_URL=http://external-system-stubs:8080/erp
       - CLOCK_API_URL=http://external-system-stubs:8080/clock
       - TAX_API_URL=http://external-system-stubs:8080/tax
@@ -73,7 +73,7 @@ services:
   external-system-stubs:
     image: wiremock/wiremock:3.10.0
     ports:
-      - "9112:8080"
+      - "9312:8080"
     volumes:
       - ../external-systems/stubs:/home/wiremock
     command: --verbose --global-response-templating

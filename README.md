@@ -14,9 +14,8 @@
 - **System:** Book Shop
 - **Architecture:** multitier
 - **Repo strategy:** monorepo
-- **Backend language:** dotnet
+- **Backend language:** typescript
 - **Frontend language:** typescript
-- **Test language:** java
 
 ## Documentation
 
