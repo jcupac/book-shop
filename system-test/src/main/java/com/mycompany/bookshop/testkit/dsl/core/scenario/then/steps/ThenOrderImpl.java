@@ -1,0 +1,158 @@
+package com.jcupac.bookshop.testkit.dsl.core.scenario.then.steps;
+
+import com.jcupac.bookshop.testkit.dsl.core.shared.ResponseVerification;
+import com.jcupac.bookshop.testkit.dsl.core.usecase.UseCaseDsl;
+import com.jcupac.bookshop.testkit.dsl.core.scenario.ExecutionResultContext;
+import com.jcupac.bookshop.testkit.dsl.port.then.steps.ThenOrder;
+import com.jcupac.bookshop.testkit.domainvaluetypes.OrderStatus;
+import com.jcupac.bookshop.testkit.dsl.core.usecase.usecases.PlaceOrderVerification;
+import com.jcupac.bookshop.testkit.dsl.core.usecase.usecases.ViewOrderVerification;
+
+public class ThenOrderImpl<R, V extends ResponseVerification<R>>
+        extends BaseThenStep<R, V> implements ThenOrder {
+    private final ViewOrderVerification orderVerification;
+
+    public ThenOrderImpl(UseCaseDsl app, ExecutionResultContext executionResult, String orderNumber, V successVerification) {
+        super(app, executionResult, successVerification);
+        if (orderNumber == null) {
+            throw new IllegalStateException("Cannot verify order: no order number available from the executed operation");
+        }
+        if (successVerification instanceof ViewOrderVerification viewOrderVerification) {
+            this.orderVerification = viewOrderVerification;
+        } else {
+            this.orderVerification = app.bookShop().viewOrder()
+                    .orderNumber(orderNumber)
+                    .execute()
+                    .shouldSucceed();
+        }
+    }
+
+    public ThenOrderImpl<R, V> hasSku(String expectedSku) {
+        orderVerification.sku(expectedSku);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasQuantity(int expectedQuantity) {
+        orderVerification.quantity(expectedQuantity);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasUnitPrice(double expectedUnitPrice) {
+        orderVerification.unitPrice(expectedUnitPrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasUnitPrice(String expectedUnitPrice) {
+        orderVerification.unitPrice(expectedUnitPrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasTotalPrice(double expectedTotalPrice) {
+        orderVerification.totalPrice(expectedTotalPrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasStatus(OrderStatus expectedStatus) {
+        orderVerification.status(expectedStatus);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasTotalPrice(String expectedTotalPrice) {
+        orderVerification.totalPrice(expectedTotalPrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasTotalPriceGreaterThanZero() {
+        orderVerification.totalPriceGreaterThanZero();
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasOrderNumberPrefix(String expectedPrefix) {
+        switch (successVerification) {
+            case PlaceOrderVerification placeOrderVerification -> placeOrderVerification.orderNumberStartsWith(expectedPrefix);
+            case ViewOrderVerification viewOrderVerification -> viewOrderVerification.orderNumberHasPrefix(expectedPrefix);
+            case null -> { /* no-op: orderNumber prefix not applicable */ }
+            default -> { /* no-op: verification type has no order number prefix check */ }
+        }
+        orderVerification.orderNumberHasPrefix(expectedPrefix);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasBasePrice(double expectedBasePrice) {
+        orderVerification.basePrice(expectedBasePrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasBasePrice(String basePrice) {
+        orderVerification.basePrice(basePrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasSubtotalPrice(double expectedSubtotalPrice) {
+        orderVerification.subtotalPrice(expectedSubtotalPrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasSubtotalPrice(String expectedSubtotalPrice) {
+        orderVerification.subtotalPrice(expectedSubtotalPrice);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasDiscountAmount(double expectedDiscountAmount) {
+        orderVerification.discountAmount(expectedDiscountAmount);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasDiscountAmount(String expectedDiscountAmount) {
+        orderVerification.discountAmount(expectedDiscountAmount);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasAppliedCoupon(String expectedCouponCode) {
+        orderVerification.appliedCouponCode(expectedCouponCode);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasAppliedCoupon() {
+        return hasAppliedCoupon(executionResult.getCouponCode());
+    }
+
+    public ThenOrderImpl<R, V> hasTaxRate(double expectedTaxRate) {
+        orderVerification.taxRate(expectedTaxRate);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasTaxRate(String expectedTaxRate) {
+        orderVerification.taxRate(expectedTaxRate);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasTaxAmount(String expectedTaxAmount) {
+        orderVerification.taxAmount(expectedTaxAmount);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasTaxAmount(double expectedTaxAmount) {
+        orderVerification.taxAmount(expectedTaxAmount);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasDiscountRate(double expectedDiscountRate) {
+        orderVerification.discountRate(expectedDiscountRate);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasDiscountRate(String expectedDiscountRate) {
+        orderVerification.discountRate(expectedDiscountRate);
+        return this;
+    }
+
+    public ThenOrderImpl<R, V> hasAppliedCouponCode(String expectedCouponCode) {
+        return hasAppliedCoupon(expectedCouponCode);
+    }
+
+    @Override
+    public ThenOrderImpl<R, V> and() {
+        return this;
+    }
+}
