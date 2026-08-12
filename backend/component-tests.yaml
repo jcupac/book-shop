@@ -1,0 +1,28 @@
+setupCommands:
+  - name: Restore Dependencies
+    command: dotnet restore
+compileCommands:
+  - name: Compile production + test projects
+    command: dotnet build
+testFilter: --filter DisplayName~<test>
+suites:
+  - id: unit
+    name: Unit
+    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Unit"
+    sampleTest: "OnePlusOne"
+  - id: integration
+    name: Narrow Integration
+    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Integration"
+    sampleTest: "SavesAndReadsBackOrder"
+    requiresDocker: true
+  - id: component
+    name: Component
+    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Component"
+    sampleTest: "HealthEndpoint_ReturnsUp"
+  - id: provider-verification
+    name: Provider Verification (Pact)
+    command: dotnet test Tests --filter "FullyQualifiedName~Jcupac.BookShop.Backend.Tests.Contract"
+    sampleTest: "Verify"
+    requiresDocker: true
+suiteGroups:
+  all: [unit, integration, component, provider-verification]

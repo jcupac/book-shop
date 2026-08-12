@@ -1,0 +1,39 @@
+package com.jcupac.bookshop.testkit.driver.adapter.external.erp;
+
+import com.jcupac.bookshop.testkit.driver.port.external.erp.ErpDriver;
+
+import com.jcupac.bookshop.testkit.driver.adapter.external.erp.client.BaseErpClient;
+import com.jcupac.bookshop.testkit.driver.port.external.erp.dtos.GetProductRequest;
+import com.jcupac.bookshop.testkit.driver.port.external.erp.dtos.GetProductResponse;
+import com.jcupac.bookshop.testkit.driver.port.external.erp.dtos.error.ErpErrorResponse;
+import com.jcupac.bookshop.testkit.common.Closer;
+import com.jcupac.bookshop.testkit.common.Result;
+
+public abstract class BaseErpDriver<C extends BaseErpClient> implements ErpDriver {
+    protected final C client;
+
+    protected BaseErpDriver(C client) {
+        this.client = client;
+    }
+
+    @Override
+    public void close() throws Exception {
+        Closer.close(client);
+    }
+
+    @Override
+    public Result<Void, ErpErrorResponse> goToErp() {
+        return client.checkHealth()
+                .mapError(ext -> new ErpErrorResponse(ext.getMessage()));
+    }
+
+    @Override
+    public Result<GetProductResponse, ErpErrorResponse> getProduct(GetProductRequest request) {
+        return client.getProduct(request.getSku())
+                .map(productDetails -> GetProductResponse.builder()
+                        .sku(productDetails.getId())
+                        .price(productDetails.getPrice())
+                        .build())
+                .mapError(ext -> new ErpErrorResponse(ext.getMessage()));
+    }
+}

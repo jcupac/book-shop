@@ -1,0 +1,125 @@
+# tests — the suites the pipeline runs against the latest cycle's
+# code. One entry per suite; the user / CI picks via `--suite <id>`.
+#
+# Per-suite fields:
+#   - id, name: how the user / CI selects and labels this run
+#   - command: the language-native test-runner invocation (gradle / dotnet /
+#     npx playwright) that runs the suite
+#   - env (optional): env vars added to the suite's process (CHANNEL,
+#     EXTERNAL_SYSTEM_MODE, etc.) — the runner injects these on top of the
+#     ambient environment
+#   - path: cwd for the test process, relative to this file's directory
+#   - testReportPath: where the language runner drops the HTML report
+#   - sampleTest: the canonical test name passed to `command` when the user
+#     runs with `--sample` — NOT "the test that always runs", just a
+#     known-good example for smoke-checking the pipeline plumbing
+#   - testInstallCommands (optional): one-time install steps that have to
+#     happen inside this suite's cwd before the language runner starts
+#     (e.g. `playwright install`)
+#
+# Top-level `testFilter` carries the `<test>` placeholder the runner
+# substitutes when the user passes `--test <name>`; the substituted string
+# is appended to `command`. A suite that needs a different filter shape
+# overrides it with its own `testFilter:` entry.
+#
+# `suiteGroups` (optional) maps an alias name to a list of suite ids —
+# `gh optivem system-test run --suite <alias>` substitutes the alias with its
+# constituent ids before the runner sees them. Each acceptance channel has TWO
+# concrete partition suites — acceptance-parallel-<ch> (runs in parallel) and
+# acceptance-isolated-<ch> (runs serially) — and a per-channel group alias
+# `acceptance-<ch>` that fans out to both, plus the top-level `acceptance`
+# covering every channel's partitions. Per-project entries here override the
+# Go-side default registry (which provides the same groups); omit the block to
+# fall back to the default. The BPMN runtime emits `--suite=acceptance` from
+# the verify-tests-pass / verify-tests-fail call-activities.
+#
+# `setupCommands` runs once when invoked via `gh optivem system-test setup` —
+# typically the build / dependency install. `test system` does not run it
+# implicitly; chain `test setup` before the first `test system` call.
+#
+# YAML conventions: indent with spaces only (yaml.v3 rejects tabs). Quote
+# strings that could parse as a YAML scalar (`yes`, `no`, country codes).
+
+setupCommands:
+  - name: Clean Build
+    command: .\gradlew.bat clean compileJava compileTestJava
+testFilter: --tests '*.<test>'
+testFilterJoin: repeat
+suiteGroups:
+  acceptance: [acceptance-parallel-api, acceptance-isolated-api, acceptance-parallel-ui, acceptance-isolated-ui]
+  acceptance-api: [acceptance-parallel-api, acceptance-isolated-api]
+  acceptance-ui: [acceptance-parallel-ui, acceptance-isolated-ui]
+suites:
+  - id: smoke-stub
+    name: latest - Smoke (stub)
+    command: .\gradlew.bat test -Dversion=latest -Dtype=smoke -DexternalSystemMode=stub
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToClock
+  - id: smoke-real
+    name: latest - Smoke (real)
+    command: .\gradlew.bat test -Dversion=latest -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToClock
+  - id: acceptance-parallel-api
+    name: latest - Acceptance Parallel (stub) - API
+    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DexcludeTags=isolated -Dchannel=API -PtestResultsDir=test-results/parallel-api
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/parallel-api
+    sampleTest: shouldBeAbleToPlaceOrderForValidInput
+  - id: acceptance-parallel-ui
+    name: latest - Acceptance Parallel (stub) - UI
+    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DexcludeTags=isolated -Dchannel=UI -DchannelMode=static -PtestResultsDir=test-results/parallel-ui
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/parallel-ui
+    sampleTest: shouldBeAbleToPlaceOrderForValidInput
+  - id: acceptance-isolated-api
+    name: latest - Acceptance Isolated (stub) - API
+    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DincludeTags=isolated -Dchannel=API -PtestResultsDir=test-results/isolated-api
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/isolated-api
+    sampleTest: shouldRecordPlacementTimestamp
+  - id: acceptance-isolated-ui
+    name: latest - Acceptance Isolated (stub) - UI
+    command: .\gradlew.bat test -Dversion=latest -Dtype=acceptance -DincludeTags=isolated -Dchannel=UI -DchannelMode=static -PtestResultsDir=test-results/isolated-ui
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/isolated-ui
+    sampleTest: shouldRecordPlacementTimestamp
+  - id: contract-stub
+    name: latest - Contract (stub)
+    command: .\gradlew.bat test -Dversion=latest -Dtype=contract -DexcludeTags=isolated -DexternalSystemMode=stub -PtestResultsDir=test-results/stub
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/stub
+    sampleTest: shouldBeAbleToGetProduct
+  - id: contract-stub-isolated
+    name: latest - Contract Isolated (stub)
+    command: .\gradlew.bat test -Dversion=latest -Dtype=contract -DincludeTags=isolated -DexternalSystemMode=stub -PtestResultsDir=test-results/stub-isolated
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/stub-isolated
+    sampleTest: shouldBeAbleToGetConfiguredTime
+  - id: contract-real
+    name: latest - Contract (real)
+    command: .\gradlew.bat test -Dversion=latest -Dtype=contract -DexternalSystemMode=real -PtestResultsDir=test-results/real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    testCountPath: build/test-results/real
+    sampleTest: shouldBeAbleToGetProduct
+  - id: e2e-api
+    name: latest - E2E (real) - API
+    command: .\gradlew.bat test -Dversion=latest -Dtype=e2e -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrder
+  - id: e2e-ui
+    name: latest - E2E (real) - UI
+    command: .\gradlew.bat test -Dversion=latest -Dtype=e2e -Dchannel=UI -DchannelMode=static
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrder

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Jcupac.BookShop.Backend.csproj" />
+  <Project Path="Tests\Jcupac.BookShop.Backend.Tests.csproj" />
+</Solution>

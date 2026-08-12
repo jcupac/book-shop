@@ -1,0 +1,20 @@
+package com.jcupac.bookshop.systemtest.legacy.mod11.contract.tax;
+
+import com.jcupac.bookshop.systemtest.configuration.ExternalSystemMode;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+class TaxStubContractTest extends BaseTaxContractTest {
+    @Override
+    protected ExternalSystemMode getFixedExternalSystemMode() {
+        return ExternalSystemMode.STUB;
+    }
+
+    @Test
+    void shouldBeAbleToGetConfiguredTaxRate() {
+        assertDoesNotThrow(() -> scenario
+                .given().country().withCode("LALA").withTaxRate(0.23)
+                .then().country("LALA").hasCountry("LALA").hasTaxRate(0.23));
+    }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "jcupac-book-shop-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for BookShop",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:component": "vitest run --config vitest.opt-in.config.ts src/test/legacy/component src/test/latest/component",
+    "test:unit": "vitest run src/test/harness.test.tsx",
+    "test:pact": "vitest run --config vitest.opt-in.config.ts src/test/pact",
+    "test:integration": "vitest run --config vitest.opt-in.config.ts src/test/legacy/integration src/test/latest/integration",
+    "test:legacy": "vitest run --config vitest.opt-in.config.ts src/test/legacy",
+    "test:latest": "vitest run --config vitest.opt-in.config.ts src/test/latest"
+  },
+  "devDependencies": {
+    "@pact-foundation/pact": "^13.2.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.1"
+  }
+}

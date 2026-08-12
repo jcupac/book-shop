@@ -1,0 +1,251 @@
+plugins {
+	id 'java'
+	id 'org.sonarqube' version '7.2.3.7755'
+	id 'org.springframework.boot' version '3.5.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+sonar {
+	properties {
+		property 'sonar.projectKey', 'jcupac_book-shop-system-test'
+		property 'sonar.projectName', 'book-shop-system-test'
+		property 'sonar.organization', 'jcupac'
+		property 'sonar.exclusions', '**/legacy/**'
+	}
+}
+
+group = 'com.jcupac.bookshop.systemtest'
+version = '0.0.1-SNAPSHOT'
+description = 'BookShop - System Test'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+	// Fallback mirror in case Maven Central has a transient outage (502/503).
+	maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.yaml:snakeyaml:2.2'
+	implementation 'com.optivem:optivem-testing:1.1.9'
+
+	// JSON serialization
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'org.springframework:spring-web'
+
+	// Playwright (browser automation for UI tests)
+	implementation 'com.microsoft.playwright:playwright:1.44.0'
+
+	// WireMock (stub server for contract tests)
+	implementation 'org.wiremock:wiremock-standalone:3.10.0'
+
+	// Assertions
+	implementation 'org.assertj:assertj-core'
+
+	// Logging
+	implementation 'org.slf4j:slf4j-api'
+	implementation 'ch.qos.logback:logback-classic'
+
+	// JUnit
+	implementation 'org.junit.jupiter:junit-jupiter-api'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// ArchUnit: structural rule checks over the test-kit (tagged "architecture")
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.register('installPlaywright', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.microsoft.playwright.CLI'
+	args = ['install']
+}
+
+tasks.named('test') {
+	dependsOn 'installPlaywright'
+
+	def partitionDir = project.findProperty('testResultsDir') as String
+	if (partitionDir) {
+		reports.junitXml.outputLocation = layout.buildDirectory.dir(partitionDir)
+	}
+
+	filter {
+		def type               = System.getProperty('type')               // smoke | acceptance | e2e | contract
+		def version            = System.getProperty('version')            // mod02 | mod03 | ... | latest
+		def externalSystemMode = System.getProperty('externalSystemMode') // stub | real (contract tests only)
+
+		// Every criterion must be folded into ONE pattern: Gradle's TestFilter ORs
+		// the patterns registered by repeated includeTestsMatching calls, so a
+		// second call widens the selection instead of narrowing it. Registering
+		// "*latest*contract*" and "*Stub*" separately selected any latest contract
+		// test (real included) OR any Stub contract test (legacy included) — 11
+		// tests where 4 were intended.
+		//
+		// Segments are appended in the order they appear in the fully-qualified
+		// name: com.jcupac.bookshop.systemtest.<version>.<type>.<domain>.<Domain><Mode>ContractTest
+		def segments = []
+		if (version) {
+			segments << version
+		}
+		if (type) {
+			segments << type
+		}
+		if (type == 'contract' && externalSystemMode == 'stub') {
+			segments << 'Stub'
+		}
+		if (type == 'contract' && externalSystemMode == 'real') {
+			segments << 'Real'
+		}
+		if (segments) {
+			includeTestsMatching '*' + segments.join('*') + '*'
+		}
+
+		// The acceptance and contract categories run as several
+		// tag/channel-partitioned sub-suites (isolated vs not, API vs UI,
+		// stub vs real). A `--tests` run naming a single test matches only the
+		// partition that test lives in, so the other sub-suites legitimately
+		// select nothing. The harness verifies across all sub-suites that every
+		// named test executed somewhere, so an empty match here must not fail
+		// the build — without this, a non-matching sub-suite aborts the run
+		// with "No tests found for given includes".
+		setFailOnNoMatchingTests(false)
+	}
+
+	useJUnitPlatform {
+		if (System.getProperty('includeTags')) {
+			includeTags System.getProperty('includeTags').split(',')
+		}
+		if (System.getProperty('excludeTags')) {
+			excludeTags System.getProperty('excludeTags').split(',')
+		}
+	}
+
+	jvmArgs '-Duser.timezone=UTC', '-Xmx512m'
+
+	// Forward -D properties only when set so the test JVM falls through to its
+	// own env-var fallbacks (PropertyLoader) when the workflow drives values via
+	// shell env instead of -D. Passing null here would surface in the test JVM
+	// as a literal "null" string and break enum parsing.
+	['environment', 'externalSystemMode', 'channel', 'channelMode'].each { name ->
+		def value = System.getProperty(name)
+		if (value != null) {
+			systemProperty name, value
+		}
+	}
+
+	// Lift the permanent WIP-test gate (@EnabledIfEnvironmentVariable on the
+	// acceptance tests) for the forked test JVM. providers.environmentVariable
+	// reads the variable as a per-invocation build input from the invoking
+	// client, so it is honored even when a warm Gradle daemon's cached
+	// environment predates the variable being set — unlike System.getenv,
+	// which would read the stale daemon environment.
+	def wipTests = providers.environmentVariable('GH_OPTIVEM_RUN_WIP_TESTS')
+	if (wipTests.isPresent()) {
+		environment 'GH_OPTIVEM_RUN_WIP_TESTS', wipTests.get()
+	}
+
+	def includeTags = System.getProperty('includeTags')
+	if (includeTags?.contains('isolated')) {
+		systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
+		maxParallelForks = 1
+	} else {
+		maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
+	}
+
+	// Capture per-test failures so the testLogging.afterSuite below can replay
+	// them in a single block right before "BUILD FAILED". Without the replay,
+	// each assertion is printed inline at the moment it fails — and gets
+	// scrolled past by subsequent parallel-fork output and the Gradle summary
+	// footer, leaving operators with only the HTML-report link to click.
+	def failedTests = []
+
+	afterTest { desc, result ->
+		if (result.failedTestCount > 0) {
+			failedTests << [
+				className : desc.className,
+				name      : desc.name,
+				exceptions: result.exceptions,
+			]
+		}
+	}
+
+	testLogging {
+		events "passed", "skipped", "failed"
+		// false: SUT app logs (Spring Boot startup, request/response dumps)
+		// would otherwise bury the assertion stack in thousands of lines.
+		showStandardStreams = false
+		exceptionFormat = 'full'
+		showExceptions = true
+		showCauses = true
+		showStackTraces = true
+
+		displayGranularity = 2
+
+		afterSuite { desc, result ->
+			if (!desc.parent) {
+				println "\nTest Summary: ${result.resultType}"
+				println "Total: ${result.testCount}, Passed: ${result.successfulTestCount}, Failed: ${result.failedTestCount}, Skipped: ${result.skippedTestCount}"
+				if (failedTests) {
+					def bar = '=' * 70
+					def sub = '-' * 70
+					println ""
+					println bar
+					println "Failed tests (assertion details):"
+					println bar
+					failedTests.each { t ->
+						println ""
+						println "${t.className}.${t.name}"
+						println sub
+						t.exceptions.each { ex ->
+							println ex.toString()
+							ex.stackTrace.take(15).each { line -> println "    at ${line}" }
+							def cause = ex.cause
+							while (cause != null) {
+								println "Caused by: ${cause}"
+								cause.stackTrace.take(8).each { line -> println "    at ${line}" }
+								cause = cause.cause
+							}
+						}
+					}
+					println bar
+				}
+			}
+		}
+
+		beforeTest { descriptor ->
+			logger.lifecycle("Running: ${descriptor.className}.${descriptor.name}")
+		}
+	}
+}
+
+// Runs ONLY the @Tag("architecture") structural checks, independently of the behavioral tests (which still run them via `test`).
+tasks.register('architectureTest', Test) {
+	useJUnitPlatform {
+		includeTags 'architecture'
+	}
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	jvmArgs '-Duser.timezone=UTC'
+}
+
+tasks.named('bootJar') {
+	enabled = false
+}
+
+tasks.named('jar') {
+	enabled = true
+}

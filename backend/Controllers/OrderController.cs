@@ -1,0 +1,52 @@
+using Microsoft.AspNetCore.Mvc;
+using Jcupac.BookShop.Backend.Core.Dtos;
+using Jcupac.BookShop.Backend.Core.Services;
+
+namespace Jcupac.BookShop.Backend.Controllers;
+
+[ApiController]
+[Route("api/orders")]
+public class OrderController : ControllerBase
+{
+    private readonly OrderService _orderService;
+
+    public OrderController(OrderService orderService)
+    {
+        _orderService = orderService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> BrowseOrderHistory([FromQuery] string? orderNumber)
+    {
+        var response = await _orderService.BrowseOrderHistoryAsync(orderNumber);
+        return Ok(response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequest request)
+    {
+        var response = await _orderService.PlaceOrderAsync(request);
+        return Created($"/api/orders/{response.OrderNumber}", response);
+    }
+
+    [HttpGet("{orderNumber}")]
+    public async Task<IActionResult> GetOrder(string orderNumber)
+    {
+        var response = await _orderService.GetOrderAsync(orderNumber);
+        return Ok(response);
+    }
+
+    [HttpPost("{orderNumber}/cancel")]
+    public async Task<IActionResult> CancelOrder(string orderNumber)
+    {
+        await _orderService.CancelOrderAsync(orderNumber);
+        return NoContent();
+    }
+
+    [HttpPost("{orderNumber}/deliver")]
+    public async Task<IActionResult> DeliverOrder(string orderNumber)
+    {
+        await _orderService.DeliverOrderAsync(orderNumber);
+        return NoContent();
+    }
+}

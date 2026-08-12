@@ -1,0 +1,15 @@
+test:
+  bookShop:
+    ui:
+      baseUrl: http://localhost:3112
+    api:
+      baseUrl: http://localhost:8112
+  erp:
+    api:
+      baseUrl: http://localhost:9112/erp
+  clock:
+    api:
+      baseUrl: http://localhost:9112/clock
+  tax:
+    api:
+      baseUrl: http://localhost:9112/tax

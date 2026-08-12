@@ -1,0 +1,187 @@
+# tests.legacy — per-cycle suites preserved for regression checks against
+# the legacy module layouts. Each `mod02` … `mod11` suite captures that
+# learning-cycle's test contract; the warm rerun loop runs these so older
+# labs stay validated even as the latest cycle's code evolves.
+#
+# (Per-suite field semantics are identical to tests — see that
+# file's header for the field walkthrough including the `sampleTest`
+# callout.)
+#
+# YAML conventions: indent with spaces only (yaml.v3 rejects tabs). Quote
+# strings that could parse as a YAML scalar (`yes`, `no`, country codes).
+
+setupCommands:
+  - name: Clean Build
+    command: .\gradlew.bat clean compileJava compileTestJava
+testFilter: --tests '*.<test>'
+testFilterJoin: repeat
+# suiteGroups bridges the BPMN process-flow suite literals — acceptance,
+# contract-stub, contract-real, emitted by the verify-tests-pass /
+# verify-tests-fail call-activities — onto the mod10/mod11 legacy suite ids,
+# so the legacy configs run through the exact same runtime/preflight path as
+# the latest-cycle tests.yaml. Mirrors that file's `acceptance` group
+# (isolated suites included), extended with the two contract aliases because
+# the legacy suites carry mod-prefixed ids rather than the bare canonical
+# names. As in tests.yaml, `contract-stub` is the non-isolated suite only;
+# mod11-contract-stub-isolated stays declared-but-unreferenced.
+suiteGroups:
+  acceptance: [mod10-acceptance-api, mod10-acceptance-ui, mod10-acceptance-isolated-api, mod10-acceptance-isolated-ui]
+  contract-stub: [mod11-contract-stub]
+  contract-real: [mod11-contract-real]
+suites:
+  - id: mod02-smoke
+    name: mod02 (smoke) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod02 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
+  - id: mod03-e2e
+    name: mod03 (e2e) - E2E (real)
+    command: .\gradlew.bat test -Dversion=mod03 -Dtype=e2e
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod04-smoke
+    name: mod04 (clients) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod04 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
+  - id: mod04-e2e
+    name: mod04 (clients) - E2E (real)
+    command: .\gradlew.bat test -Dversion=mod04 -Dtype=e2e
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod05-smoke
+    name: mod05 (drivers) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod05 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
+  - id: mod05-e2e
+    name: mod05 (drivers) - E2E (real)
+    command: .\gradlew.bat test -Dversion=mod05 -Dtype=e2e
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod06-smoke
+    name: mod06 (channels) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod06 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
+  - id: mod06-e2e-api
+    name: mod06 (channels) - E2E (real) - API
+    command: .\gradlew.bat test -Dversion=mod06 -Dtype=e2e -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod06-e2e-ui
+    name: mod06 (channels) - E2E (real) - UI
+    command: .\gradlew.bat test -Dversion=mod06 -Dtype=e2e -Dchannel=UI
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod07-smoke
+    name: mod07 (app dsl) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod07 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
+  - id: mod07-e2e-api
+    name: mod07 (app dsl) - E2E (real) - API
+    command: .\gradlew.bat test -Dversion=mod07 -Dtype=e2e -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod07-e2e-ui
+    name: mod07 (app dsl) - E2E (real) - UI
+    command: .\gradlew.bat test -Dversion=mod07 -Dtype=e2e -Dchannel=UI
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod08-smoke
+    name: mod08 (scenario dsl) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod08 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToBookShop
+  - id: mod08-e2e-api
+    name: mod08 (scenario dsl) - E2E (real) - API
+    command: .\gradlew.bat test -Dversion=mod08 -Dtype=e2e -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod08-e2e-ui
+    name: mod08 (scenario dsl) - E2E (real) - UI
+    command: .\gradlew.bat test -Dversion=mod08 -Dtype=e2e -Dchannel=UI -DchannelMode=static
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrderForValidInput
+  - id: mod09-smoke-stub
+    name: mod09 (external stubs) - Smoke (stub)
+    command: .\gradlew.bat test -Dversion=mod09 -Dtype=smoke -DexternalSystemMode=stub
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToClock
+  - id: mod09-smoke-real
+    name: mod09 (external stubs) - Smoke (real)
+    command: .\gradlew.bat test -Dversion=mod09 -Dtype=smoke -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGoToClock
+  - id: mod10-acceptance-api
+    name: mod10 (acceptance) - Acceptance (stub) - API
+    command: .\gradlew.bat test -Dversion=mod10 -Dtype=acceptance -DexcludeTags=isolated -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: orderNumberShouldStartWithORD
+  - id: mod10-acceptance-ui
+    name: mod10 (acceptance) - Acceptance (stub) - UI
+    command: .\gradlew.bat test -Dversion=mod10 -Dtype=acceptance -DexcludeTags=isolated -Dchannel=UI -DchannelMode=static
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: orderNumberShouldStartWithORD
+  - id: mod10-acceptance-isolated-api
+    name: mod10 (acceptance) - Acceptance Isolated (stub) - API
+    command: .\gradlew.bat test -Dversion=mod10 -Dtype=acceptance -DincludeTags=isolated -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldRecordPlacementTimestamp
+  - id: mod10-acceptance-isolated-ui
+    name: mod10 (acceptance) - Acceptance Isolated (stub) - UI
+    command: .\gradlew.bat test -Dversion=mod10 -Dtype=acceptance -DincludeTags=isolated -Dchannel=UI -DchannelMode=static
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldRecordPlacementTimestamp
+  - id: mod11-contract-stub
+    name: mod11 (contract) - Contract (stub)
+    command: .\gradlew.bat test -Dversion=mod11 -Dtype=contract -DexcludeTags=isolated -DexternalSystemMode=stub
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGetProduct
+  - id: mod11-contract-stub-isolated
+    name: mod11 (contract) - Contract Isolated (stub)
+    command: .\gradlew.bat test -Dversion=mod11 -Dtype=contract -DincludeTags=isolated -DexternalSystemMode=stub
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGetConfiguredTime
+  - id: mod11-contract-real
+    name: mod11 (contract) - Contract (real)
+    command: .\gradlew.bat test -Dversion=mod11 -Dtype=contract -DexternalSystemMode=real
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldBeAbleToGetProduct
+  - id: mod11-e2e-api
+    name: mod11 (contract) - E2E (real) - API
+    command: .\gradlew.bat test -Dversion=mod11 -Dtype=e2e -Dchannel=API
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrder
+  - id: mod11-e2e-ui
+    name: mod11 (contract) - E2E (real) - UI
+    command: .\gradlew.bat test -Dversion=mod11 -Dtype=e2e -Dchannel=UI -DchannelMode=static
+    path: .
+    testReportPath: build/reports/tests/test/index.html
+    sampleTest: shouldPlaceOrder
